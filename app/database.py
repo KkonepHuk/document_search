@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -11,8 +11,10 @@ class Settings(BaseSettings):
     database_url: str
     elasticsearch_url: str = "http://localhost:9200"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+    )
 
 
 settings = Settings()
@@ -27,3 +29,7 @@ async_session = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False
 )
+
+async def get_session():
+    async with async_session() as session:
+        yield session
