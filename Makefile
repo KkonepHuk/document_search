@@ -6,7 +6,7 @@ build:
 
 down:
 	docker compose down
-down hard:
+down-hard:
 	docker compose down -v
 	rm -rf pgdata esdata
 restart:
