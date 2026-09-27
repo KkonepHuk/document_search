@@ -12,7 +12,9 @@ down-hard:
 restart:
 	docker compose down
 	docker compose up -d --build
-
+rebuild:
+	docker compose down -v
+	docker compose up -d --build
 logs:
 	docker compose logs -f
 
