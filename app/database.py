@@ -1,3 +1,4 @@
+from elasticsearch import AsyncElasticsearch
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
@@ -33,3 +34,11 @@ async_session = async_sessionmaker(
 async def get_session():
     async with async_session() as session:
         yield session
+
+async def get_elasticsearch():
+    es = AsyncElasticsearch(settings.elasticsearch_url)
+
+    try:
+        yield es
+    finally:
+        await es.close()
