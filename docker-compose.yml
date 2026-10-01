@@ -61,6 +61,12 @@ services:
       - "9200:9200"
     volumes:
       - ./esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
   
   indexer: #индексируем данные из PostgreSQL в Elasticsearch
     build: .
@@ -69,7 +75,7 @@ services:
       importer:
         condition: service_completed_successfully
       elasticsearch:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -83,7 +89,7 @@ services:
       importer:
         condition: service_completed_successfully
       elasticsearch:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "8000:8000"
     env_file:
