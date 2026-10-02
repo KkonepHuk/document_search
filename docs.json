@@ -1,0 +1,273 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Document Search API",
+    "description": "API для поиска и удаления текстовых документов.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Проверка доступности сервиса",
+        "operationId": "root",
+        "responses": {
+          "200": {
+            "description": "Сервис доступен",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                },
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Проверка состояния базы данных",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "База данных доступна",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "database": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/search": {
+      "post": {
+        "summary": "Поиск документов",
+        "description": "Ищет документы по тексту через Elasticsearch и возвращает не более 20 документов, отсортированных по дате создания от новых к старым.",
+        "operationId": "searchDocuments",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              },
+              "example": {
+                "query": "футбол"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Список найденных документов",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "$ref": "#/components/schemas/Document"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "rubrics": [
+                      "спорт"
+                    ],
+                    "text": "Футбольный матч завершился победой команды.",
+                    "created_date": "2024-01-15T12:30:00"
+                  }
+                ]
+              }
+            }
+          },
+          "422": {
+            "description": "Некорректное тело запроса"
+          }
+        }
+      }
+    },
+    "/documents/{document_id}": {
+      "delete": {
+        "summary": "Удаление документа",
+        "description": "Удаляет документ из PostgreSQL и Elasticsearch.",
+        "operationId": "deleteDocument",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "description": "Уникальный идентификатор документа",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Документ успешно удалён",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                },
+                "example": {
+                  "message": "Document deleted",
+                  "id": 1
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Документ не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "detail": "Document not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Document": {
+        "type": "object",
+        "required": [
+          "id",
+          "rubrics",
+          "text",
+          "created_date"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Уникальный идентификатор документа",
+            "example": 1
+          },
+          "rubrics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Список рубрик документа",
+            "example": [
+              "спорт",
+              "футбол"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "description": "Текст документа",
+            "example": "Футбольный матч завершился победой команды."
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Дата создания документа",
+            "example": "2024-01-15T12:30:00"
+          }
+        }
+      },
+      "SearchRequest": {
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Текстовый поисковый запрос",
+            "example": "футбол"
+          }
+        }
+      },
+      "StatusResponse": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "database"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "database": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "DeleteResponse": {
+        "type": "object",
+        "required": [
+          "message",
+          "id"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Document deleted"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "example": "Document not found"
+          }
+        }
+      }
+    }
+  }
+}
