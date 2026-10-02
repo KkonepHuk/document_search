@@ -48,7 +48,7 @@ async def search_documents(
     result = await es.search(
         index="documents",
         query={"match": {"text": data.query}},
-        size=10000,
+        size=20,
     )
 
     hits = result.get("hits", {}).get("hits", [])
@@ -61,7 +61,7 @@ async def search_documents(
         select(Document)
         .where(Document.id.in_(document_ids))
         .order_by(desc(Document.created_date))
-        .limit(10000)
+        .limit(20)
     )
 
     documents = result.scalars().all()
