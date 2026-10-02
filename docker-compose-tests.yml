@@ -1,0 +1,11 @@
+services:
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: document-search-tests
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app
+    command: pytest

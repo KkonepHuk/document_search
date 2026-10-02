@@ -20,4 +20,4 @@ ps:
 	docker compose ps
 
 test-run:
-	python -m pytest -q tests/test_api.py
+	docker compose -f docker-compose-tests.yml run --rm tests
