@@ -14,9 +14,10 @@ restart:
 	docker compose up -d --build
 rebuild:
 	docker compose down -v
+	rm -rf pgdata esdata
 	docker compose up -d --build
-logs:
-	docker compose logs -f
-
 ps:
 	docker compose ps
+
+test-run:
+	python -m pytest -q tests/test_api.py
